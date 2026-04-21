@@ -1,4 +1,3 @@
-
 import Candidate from "../models/Candidate.js";
 
 // GET All Candidates

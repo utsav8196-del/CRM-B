@@ -151,7 +151,8 @@ export const getDashboardOverview = async (req, res) => {
 };
 
 // Get Dashboard Stats Only (for quick updates)
-export const getDashboardStats = async (req, res) => {
+export const 
+getDashboardStats = async (req, res) => {
   try {
     const totalCandidates = await Candidate.countDocuments();
     const scheduledInterviews = await Interview.countDocuments({ status: "Scheduled" });

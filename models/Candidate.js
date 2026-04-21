@@ -1,4 +1,3 @@
-
 import mongoose from "mongoose";
 
 const candidateSchema = new mongoose.Schema(

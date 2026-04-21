@@ -6,10 +6,16 @@ import { connectDB } from "./config/db.js";
 import candidateRoutes from "./routes/candidateRoutes.js";
 import interviewRoutes from "./routes/interviewRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
-import emailRoutes from "./routes/emailRoutes.js";
+import emailRoutes from "./routes/emailRoutes.js";  
 import errorHandler from "./middleware/errorMiddleware.js";
+import authRoutes from "./routes/authRoutes.js";
+import mongoose from "mongoose";
 
 dotenv.config();
+
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB Connected"))
+  .catch(err => console.log(err));
 
 const app = express();
 app.use(express.json());
@@ -24,24 +30,9 @@ app.use(
 
 connectDB(process.env.MONGO_URI);
 
-// app.use((req, res, next) => {
-//   res.header("Access-Control-Allow-Credentials", "true");
-//   next();
-// });
-
-// app.use(
-//   cors({
-//     origin: function (origin, callback) {
-//       callback(null, origin); // reflect requested origin
-//     },
-//     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-//     allowedHeaders: "Content-Type,Authorization",
-//     credentials: true,
-//   })
-// );
 app.use(express.json());
 
-app.get("/api/health", (req, res) => {
+app.get("/api/health", (req, res) => { 
   console.log(process.env.CLIENT_URL, "------------------------2");
   res.status(200).json({
     success: true,
@@ -54,6 +45,7 @@ app.use("/api/candidates", candidateRoutes);
 app.use("/api/interviews", interviewRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/email", emailRoutes);
+app.use("/api/auth", authRoutes);
 
 // 404 handler for undefined routes
 app.use("*", (req, res) => {
@@ -65,5 +57,5 @@ app.use("*", (req, res) => {
 
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5173;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

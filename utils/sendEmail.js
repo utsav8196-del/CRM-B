@@ -1,20 +1,33 @@
-import nodemailer from "nodemailer";
+import Mailjet from "node-mailjet";
 
 export const sendEmail = async (to, subject, message) => {
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
+  try {
+    const mailjet = Mailjet.apiConnect(
+      process.env.MAILJET_API_KEY,
+      process.env.MAILJET_SECRET_KEY
+    );
 
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to,
-    subject,
-    html: message,
-  };
+    await mailjet.post("send", { version: "v3.1" }).request({
+      Messages: [
+        {
+          From: {
+            Email: process.env.MAILJET_FROM_EMAIL,
+            Name: "HR Team",
+          },
+          To: [
+            {
+              Email: to,
+            },
+          ],
+          Subject: subject,
+          HTMLPart: message,
+        },
+      ],
+    });
 
-  await transporter.sendMail(mailOptions);
+    console.log("MailJet Email Sent Successfully");
+  } catch (error) {
+    console.error("MailJet Email Error:", error.message);
+    throw new Error("Email sending failed");
+  }
 };
