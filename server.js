@@ -17,21 +17,44 @@ const app = express();
 const allowedOrigins = (process.env.CLIENT_URL ||
   "https://crmf.vercel.app,http://localhost:5173")
   .split(",")
-  .map((origin) => origin.trim())
+  .map((origin) => origin.trim().replace(/\/$/, ""))
   .filter(Boolean);
 
-app.use(
-  cors({
-    origin(origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
+const isAllowedOrigin = (origin) => {
+  if (!origin) {
+    return true;
+  }
 
-      return callback(new Error("CORS origin not allowed"));
-    },
-    credentials: true,
-  })
-);
+  const normalizedOrigin = origin.replace(/\/$/, "");
+
+  if (allowedOrigins.includes(normalizedOrigin)) {
+    return true;
+  }
+
+  if (/^https:\/\/.*\.vercel\.app$/.test(normalizedOrigin)) {
+    return true;
+  }
+
+  if (/^http:\/\/localhost:\d+$/.test(normalizedOrigin)) {
+    return true;
+  }
+
+  return false;
+};
+
+const corsOptions = {
+  origin(origin, callback) {
+    if (isAllowedOrigin(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error("CORS origin not allowed"));
+  },
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 connectDB(process.env.MONGO_URI);
 
