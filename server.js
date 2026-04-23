@@ -9,21 +9,26 @@ import dashboardRoutes from "./routes/dashboardRoutes.js";
 import emailRoutes from "./routes/emailRoutes.js";  
 import errorHandler from "./middleware/errorMiddleware.js";
 import authRoutes from "./routes/authRoutes.js";
-import mongoose from "mongoose";
 
 dotenv.config();
 
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB Connected"))
-  .catch(err => console.log(err));
-
 const app = express();
-app.use(express.json());
-console.log(process.env.CLIENT_URL, "------------------------1");
+
+const allowedOrigins = (process.env.CLIENT_URL ||
+  "https://crmf.vercel.app,http://localhost:5173")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("CORS origin not allowed"));
+    },
     credentials: true,
   })
 );
@@ -33,10 +38,9 @@ connectDB(process.env.MONGO_URI);
 app.use(express.json());
 
 app.get("/api/health", (req, res) => { 
-  console.log(process.env.CLIENT_URL, "------------------------2");
   res.status(200).json({
     success: true,
-    message: "Server is running successfully" + process.env.CLIENT_URL,
+    message: "Server is running successfully",
     timestamp: new Date().toISOString(),
   });
 });
